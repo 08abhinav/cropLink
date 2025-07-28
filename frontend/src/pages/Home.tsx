@@ -22,16 +22,10 @@ const Home = () => {
             >
               Get Started
             </Link>
-            <Link
-              to="/signin"
-              className="border border-blue-600 text-blue-600 px-6 py-3 rounded-xl text-lg font-semibold hover:bg-blue-100 transition"
-            >
-              Sign In
-            </Link>
           </div>
 
           <div className="grid md:grid-cols-3 gap-10 text-left">
-            <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+            <div className="bg-gradient-to-r from-blue-100 to-white p-6 rounded-xl shadow hover:shadow-lg transition">
               <h3 className="text-xl font-bold mb-2 text-blue-700">🔗 URL Shortening</h3>
               <p className="text-gray-600">
                 Create clean, custom short links for crop-related websites, reports, and product pages.
@@ -45,7 +39,7 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+            <div className="bg-gradient-to-r from-white to-green-100 p-6 rounded-xl shadow hover:shadow-lg transition">
               <h3 className="text-xl font-bold mb-2 text-purple-700">🔒 Secure & Reliable</h3>
               <p className="text-gray-600">
                 Powered by JWT authentication and PostgreSQL, your data stays safe and performant.
