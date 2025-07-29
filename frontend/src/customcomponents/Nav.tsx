@@ -1,12 +1,18 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const Nav = () => {
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/signin");
+  };
+
   return (
     <nav className="w-full backdrop-blur-lg bg-gradient-to-r from-blue-100 via-white to-blue-100 font-serif shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-
-        {/* Left: Logo + Brand */}
         <div className="flex items-center space-x-3 group">
           <img
             src="/url.png"
@@ -21,7 +27,6 @@ const Nav = () => {
           </Link>
         </div>
 
-        {/* Right: Placeholder for future items */}
         <div className="space-x-6 text-blue-500 hidden md:flex font-serif font-semibold">
           <Link to="/about" className="hover:text-blue-700 transition-colors">
             About
@@ -29,6 +34,14 @@ const Nav = () => {
           <Link to="/contact" className="hover:text-blue-700 transition-colors">
             Contact
           </Link>
+          {isAuthenticated && (
+            <span
+              onClick={handleLogout}
+              className="cursor-pointer hover:text-red-700 transition-colors"
+            >
+              Logout
+            </span>
+          )}
         </div>
       </div>
     </nav>
