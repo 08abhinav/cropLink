@@ -33,6 +33,7 @@ func JWTMiddleware() fiber.Handler {
 		payload := token.Claims.(jwt.MapClaims)
 		c.Locals("user_id", payload["user_id"])
 		c.Locals("email", payload["email"])
+		c.Locals("name", payload["name"])
 
 		return c.Next()
 	}
