@@ -4,16 +4,11 @@ import (
 	"net/http"
 
 	"github.com/08abhinav/cropLink/model"
+	"github.com/08abhinav/cropLink/utils"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
-
-func HomePage(ctx *fiber.Ctx) error {
-	return ctx.JSON(&fiber.Map{
-		"message": "Welcome to the CropLink",
-	})
-}
 
 func RegisterUser(ctx *fiber.Ctx, db *gorm.DB) error {
 	var user model.User
@@ -92,20 +87,47 @@ func SigninUser(ctx *fiber.Ctx, db *gorm.DB) error {
 		})
 	}
 
-	// Compare password safely
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(*loginreq.Password)); err != nil {
 		return ctx.Status(http.StatusUnauthorized).JSON(&fiber.Map{
 			"message": "Invalid credentials",
 		})
 	}
 	
+	token, err := utils.GenerateJWT(user.ID, *user.Email, *user.Name)
+	if err != nil{
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "failed to generate token",
+			"error": err.Error(),
+		})
+	}
 
+	ctx.Cookie(&fiber.Cookie{
+		Name: "token",
+		Value: token,
+		HTTPOnly: true,
+		Secure: false,
+		Path: "/",
+		MaxAge: 60 * 60 * 24,
+	})
 	return ctx.JSON(&fiber.Map{
 		"message": "Signin successfully",
-		"user": fiber.Map{
-			"name": user.Name,
-			"email": user.Email,
-		},
+	})
+}
+
+func GetUserInfo(ctx *fiber.Ctx) error{
+	email := ctx.Locals("email")
+	name := ctx.Locals("name")
+
+	return ctx.JSON(&fiber.Map{
+		"email": email, 
+		"name": name,
+	})
+}
+
+func Logout(ctx *fiber.Ctx)error{
+	ctx.ClearCookie("token")
+	return ctx.JSON(&fiber.Map{
+		"message": "logged out successfully",
 	})
 }
 
