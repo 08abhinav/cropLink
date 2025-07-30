@@ -20,10 +20,9 @@ func UserRoutes(app *fiber.App, repo *shared.Repos) {
 
 	api.Get("/me", middleware.JWTMiddleware(), func(c *fiber.Ctx)error{
 		return controllers.GetUserInfo(c) 
-		
 	})
 
-	api.Post("/logout", middleware.JWTMiddleware(), func(c *fiber.Ctx)error{
+	api.Get("/logout", middleware.JWTMiddleware(), func(c *fiber.Ctx)error{
 		return controllers.Logout(c)
 	})
 }
