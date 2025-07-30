@@ -1,8 +1,8 @@
 package model
 
 import (
-	"time"
 	"gorm.io/gorm"
+	"time"
 )
 
 type User struct {
@@ -18,13 +18,14 @@ type Url struct {
 	ID          uint      `gorm:"primaryKey; autoIncrement" json:"id"`
 	OriginalUrl string    `json:"original_url"`
 	ShortUrl    string    `json:"short_url"`
-	CreatedAt   time.Time `json:"createdat"`
+	Clicked     uint      `json:"clicked"`
+	CreatedAt   time.Time `json:"created_at" gorm: autoCreateTime`
 
-	UserID uint `json:user_id`
+	UserID uint `json:"user_id"`
 	User   User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
 }
 
-func MigrateModels(db *gorm.DB) error{
+func MigrateModels(db *gorm.DB) error {
 	err := db.AutoMigrate(&User{}, &Url{})
 	return err
 }
