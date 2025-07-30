@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/08abhinav/cropLink/model"
 	"github.com/08abhinav/cropLink/utils"
@@ -125,9 +126,15 @@ func GetUserInfo(ctx *fiber.Ctx) error{
 }
 
 func Logout(ctx *fiber.Ctx)error{
-	ctx.ClearCookie("token")
-	return ctx.JSON(&fiber.Map{
-		"message": "logged out successfully",
+	cookie := fiber.Cookie{
+		Name: "token",
+		Value: "",
+		Expires: time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+	}
+	ctx.Cookie(&cookie)
+	return ctx.JSON(fiber.Map{
+		"message": "Logout Successfully",
 	})
 }
 
