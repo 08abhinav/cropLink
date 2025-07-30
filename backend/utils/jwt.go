@@ -7,11 +7,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateJWT(userID uint, email string) (string, error) {
+func GenerateJWT(userID uint, email, name string) (string, error) {
 	secret := os.Getenv("JWT_SECRETKEY")
 	payload := jwt.MapClaims{
 		"user_id": userID,
-		"eamil": email,
+		"email": email,
+		"name": name,
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	}
 
