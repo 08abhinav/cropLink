@@ -28,9 +28,10 @@ CropLink is a modern full-stack web application that allows users to shorten lon
 
 ---
 
-##💡 Future Enhancements
--Custom short URLs
--Expiry and deletion
--Admin analytics panel
--Rate limiting + Abuse preventio
+## 💡Future Enhancements
+
+- Custom short URLs
+- Expiry and deletion
+- Admin analytics panel
+- Rate limiting + Abuse preventio
 
