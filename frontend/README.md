@@ -66,7 +66,7 @@ npm install
 
 #### Clerk Configuration
 
-Create a `.env.local` in `frontend/` with your Clerk keys:
+Create a `.env` in `frontend/` with your Clerk keys:
 
 ```bash
 VITE_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key
