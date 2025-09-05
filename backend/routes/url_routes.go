@@ -8,7 +8,11 @@ import (
 )
 
 func UrlRoutes(app *fiber.App, repo *shared.Repos) {
-	api := app.Group("/api/url", middleware.JWTMiddleware())
+	api := app.Group("url", middleware.ClerkAuth())
+
+	app.Get("/:short", func(c *fiber.Ctx) error {
+		return controllers.RedirectUrl(c, repo.DB)
+	})
 
 	api.Post("/createUrl", func(c *fiber.Ctx) error {
 		return controllers.CreateShortUrl(c, repo.DB)
@@ -18,7 +22,7 @@ func UrlRoutes(app *fiber.App, repo *shared.Repos) {
 		return controllers.GetUserUrls(c, repo.DB)
 	})
 
-	api.Get("/u/:short", func(c *fiber.Ctx) error {
-		return controllers.RedirectUrl(c, repo.DB)
+	api.Get("/getStats", func(c *fiber.Ctx) error{
+		return controllers.GetUserStat(c, repo.DB)
 	})
 }
