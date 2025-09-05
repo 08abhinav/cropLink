@@ -49,7 +49,6 @@ func main() {
 		DB: db,
 	}
 
-	routes.UserRoutes(app, repo)
 	routes.UrlRoutes(app, repo)
 
 	log.Fatal(app.Listen(":8080"))
