@@ -18,6 +18,10 @@ func UrlRoutes(app *fiber.App, repo *shared.Repos) {
 		return controllers.CreateCustomUrl(c, repo.DB)
 	})
 
+	api.Post("/deleteUrl", func(c *fiber.Ctx) error{
+		return controllers.DeleteUserUrl(c, repo.DB)
+	})
+
 	app.Get("/:short", func(c *fiber.Ctx) error {
 		return controllers.RedirectUrl(c, repo.DB)
 	})
