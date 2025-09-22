@@ -47,7 +47,7 @@ func CreateShortUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 		OriginalUrl: body.OriginalUrl,
 		ShortUrl:    shortCode,
 		Clicked:     0,
-		ExpiresAt:   &expiry,
+		ExpiresAt:   expiry,
 		UserID:      userId,
 	}
 
