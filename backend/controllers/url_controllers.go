@@ -11,89 +11,92 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateShortUrl(ctx *fiber.Ctx, db *gorm.DB) error { 
+func CreateShortUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 	type RequestBody struct {
-		OriginalUrl string `json:"original_url"` 
-	} 
+		OriginalUrl string `json:"original_url"`
+	}
 
-	var body RequestBody 
+	var body RequestBody
 	if err := ctx.BodyParser(&body); err != nil {
 
-	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{ 
-		"message": "Invalid request body", 
-		"error": err.Error(), }) 
-	} 
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+			"error":   err.Error()})
+	}
 
-	if body.OriginalUrl == "" { 
+	if body.OriginalUrl == "" {
 
-	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{ 
-		"message": "Original url is required", }) 
-	} 
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "Original url is required"})
+	}
 
-	userId, ok := ctx.Locals("user_id").(string) 
+	userId, ok := ctx.Locals("user_id").(string)
 	if !ok || userId == "" {
-		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{ 
-			"message": "unauthorized", }) 
-	} 
-	shortCode := utils.GenerateShortCode(6) 
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthorized"})
+	}
+	shortCode := utils.GenerateShortCode(6)
 	baseUrl := os.Getenv("BASE_URL")
-	shortUrl := fmt.Sprintf("%s/%s", baseUrl, shortCode) 
+	shortUrl := fmt.Sprintf("%s/%s", baseUrl, shortCode)
 
-	newUrl := model.Url{ 
-		OriginalUrl: body.OriginalUrl, 
-		ShortUrl: shortCode, 
-		Clicked: 0, 
-		UserID: userId, 
-	} 
+	newUrl := model.Url{
+		OriginalUrl: body.OriginalUrl,
+		ShortUrl:    shortCode,
+		Clicked:     0,
+		UserID:      userId,
+	}
 
-	if err := db.Create(&newUrl).Error; err != nil {	
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{ 
-			"message": "could not create short url", 
-			"error": err.Error(), 
-		}) 
-	} 
+	if err := db.Create(&newUrl).Error; err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "could not create short url",
+			"error":   err.Error(),
+		})
+	}
 
-	return ctx.JSON(fiber.Map{ 
-		"message": "short url created successfully", 
-		"short_url": shortUrl, 
-		"original": newUrl.OriginalUrl, 
-		"created_at": newUrl.CreatedAt, 
-	}) 
+	return ctx.JSON(fiber.Map{
+		"message":    "short url created successfully",
+		"short_url":  shortUrl,
+		"original":   newUrl.OriginalUrl,
+		"created_at": newUrl.CreatedAt,
+	})
 }
 
-func GetUserUrls(ctx *fiber.Ctx, db *gorm.DB)error{
-	ID := ctx.Locals("user_id").(string)
-	if ID == ""{
-		return ctx.Status(http.StatusUnauthorized).JSON(&fiber.Map{
+func GetUserUrls(ctx *fiber.Ctx, db *gorm.DB) error {
+	ID, ok := ctx.Locals("user_id").(string)
+	if !ok || ID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "unauthorized",
 		})
 	}
 
-	var urls[] model.Url
-	if err := db.Where("user_id = ?", ID).Find(&urls).Error; err != nil{
-		return ctx.Status(http.StatusNotFound).JSON(&fiber.Map{
-			"message": "user not found",
+	var urls []model.Url
+	if err := db.Where("user_id = ?", ID).Order("created_at desc").Find(&urls).Error; err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "database error",
+			"error":   err.Error(),
 		})
 	}
-
-	return ctx.JSON(&fiber.Map{
+	
+	return ctx.JSON(fiber.Map{
 		"urls": urls,
 	})
 }
 
 func RedirectUrl(ctx *fiber.Ctx, db *gorm.DB) error {
-    short := ctx.Params("short")
-    if short == "" {
-        return ctx.Status(fiber.StatusBadRequest).SendString("Short code missing")
-    }
+	short := ctx.Params("short")
+	if short == "" {
+		return ctx.Status(fiber.StatusBadRequest).SendString("Short code missing")
+	}
 
-    var url model.Url
-    if err := db.Where("short_url = ?", short).First(&url).Error; err != nil {
-        return ctx.Status(fiber.StatusNotFound).SendString("Short URL not found")
-    }
+	var url model.Url
+	if err := db.Where("short_url = ?", short).First(&url).Error; err != nil {
+		return ctx.Status(fiber.StatusNotFound).SendString("Short URL not found")
+	}
 
-    url.Clicked += 1
-    db.Save(&url)
+	if err := db.Model(&url).
+		UpdateColumn("clicked", gorm.Expr("clicked + ?", 1)).Error; err != nil {
+		// fmt.Println("Failed to update click count:", err)
+	}
 
 	return ctx.Redirect(url.OriginalUrl, fiber.StatusFound)
 }
@@ -113,7 +116,7 @@ func GetUserStat(ctx *fiber.Ctx, db *gorm.DB) error {
 			"message": "User ID missing or invalid",
 		})
 	}
- 
+
 	var totalLinks int64
 	if err := db.Model(&model.Url{}).
 		Where("user_id = ?", userId).
@@ -149,10 +152,86 @@ func GetUserStat(ctx *fiber.Ctx, db *gorm.DB) error {
 	}
 
 	res := DashboardStats{
-		TotalLinks:    totalLinks,
-		TotalClicks:   int64(totalClicksResult.Sum),
+		TotalLinks:     totalLinks,
+		TotalClicks:    int64(totalClicksResult.Sum),
 		LastCreatedURL: lastURL.ShortUrl,
 	}
 
 	return ctx.JSON(res)
+}
+
+func CreateCustomUrl(ctx *fiber.Ctx, db *gorm.DB) error {
+	type RequestBody struct {
+		OriginalUrl string `json:"original_url"`
+		CustomUrl   string `json:"custom_url"`
+	}
+
+	var body RequestBody
+	if err := ctx.BodyParser(&body); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid Request Body",
+			"error":   err.Error(),
+		})
+	}
+
+	if body.OriginalUrl == "" || body.CustomUrl == ""{
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "Missing parameters",
+		})
+	}
+
+	userId, ok := ctx.Locals("user_id").(string)
+	if !ok || userId == ""{
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	 
+	if !utils.IsValid(body.CustomUrl){
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid url",
+		})
+	}
+
+	var count int64
+	if err := db.Model(&model.Url{}).
+		Where("short_url = ?", body.CustomUrl).
+		Count(&count).Error; err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Database error",
+			"error":   err.Error(),
+		})
+	}
+
+	if count > 0 {
+		return ctx.Status(http.StatusConflict).JSON(fiber.Map{
+			"message": "Custom URL already taken",
+		})
+	}
+
+	newUrl := model.Url{
+		OriginalUrl: body.OriginalUrl,
+		ShortUrl: body.CustomUrl,
+		Clicked: 0,
+		UserID: userId,
+		IsCustom: true,
+	}
+
+	if err := db.Create(&newUrl).Error; err != nil{
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "could not create short url",
+			"error":   err.Error(),
+		})
+	}
+
+	baseUrl := os.Getenv("BASE_URL")
+	shortUrl := fmt.Sprintf("%s/%s", baseUrl, body.CustomUrl)
+	
+	return ctx.JSON(fiber.Map{
+		"message":    "short url created successfully",
+		"short_url":  shortUrl,
+		"original":   newUrl.OriginalUrl,
+		"created_at": newUrl.CreatedAt,
+	})
 }
