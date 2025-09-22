@@ -191,54 +191,57 @@ type DashboardStats struct {
 }
 
 func GetUserStat(ctx *fiber.Ctx, db *gorm.DB) error {
-	// Safely extract Clerk user_id
-	userIdVal := ctx.Locals("user_id")
-	userId, ok := userIdVal.(string)
-	if !ok || userId == "" {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "User ID missing or invalid",
-		})
-	}
+    // Safely extract Clerk user_id
+    userIdVal := ctx.Locals("user_id")
+    userId, ok := userIdVal.(string)
+    if !ok || userId == "" {
+        return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+            "message": "User ID missing or invalid",
+        })
+    }
 
-	var totalLinks int64
-	if err := db.Model(&model.Url{}).
-		Where("user_id = ?", userId).
-		Count(&totalLinks).Error; err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed to count links",
-			"error":   err.Error(),
-		})
-	}
+    now := time.Now()
 
-	var totalClicksResult struct {
-		Sum uint64
-	}
-	if err := db.Model(&model.Url{}).
-		Select("COALESCE(SUM(clicked),0) as sum").
-		Where("user_id = ?", userId).
-		Scan(&totalClicksResult).Error; err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed to sum clicks",
-			"error":   err.Error(),
-		})
-	}
+    var totalLinks int64
+    if err := db.Model(&model.Url{}).
+        Where("user_id = ? AND (expires_at IS NULL OR expires_at > ?)", userId, now).
+        Count(&totalLinks).Error; err != nil {
+        return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "message": "failed to count links",
+            "error":   err.Error(),
+        })
+    }
 
-	var lastURL model.Url
-	if err := db.Where("user_id = ?", userId).
-		Order("created_at DESC").
-		Limit(1).
-		First(&lastURL).Error; err != nil && err != gorm.ErrRecordNotFound {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed to fetch last URL",
-			"error":   err.Error(),
-		})
-	}
+    var totalClicksResult struct {
+        Sum uint64
+    }
+    if err := db.Model(&model.Url{}).
+        Select("COALESCE(SUM(clicked),0) as sum").
+        Where("user_id = ? AND (expires_at IS NULL OR expires_at > ?)", userId, now).
+        Scan(&totalClicksResult).Error; err != nil {
+        return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "message": "failed to sum clicks",
+            "error":   err.Error(),
+        })
+    }
 
-	res := DashboardStats{
-		TotalLinks:     totalLinks,
-		TotalClicks:    int64(totalClicksResult.Sum),
-		LastCreatedURL: lastURL.ShortUrl,
-	}
+    var lastURL model.Url
+    if err := db.Where("user_id = ? AND (expires_at IS NULL OR expires_at > ?)", userId, now).
+        Order("created_at DESC").
+        Limit(1).
+        First(&lastURL).Error; err != nil && err != gorm.ErrRecordNotFound {
+        return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "message": "failed to fetch last URL",
+            "error":   err.Error(),
+        })
+    }
 
-	return ctx.JSON(res)
+    res := DashboardStats{
+        TotalLinks:     totalLinks,
+        TotalClicks:    int64(totalClicksResult.Sum),
+        LastCreatedURL: lastURL.ShortUrl,
+    }
+
+    return ctx.JSON(res)
 }
+
