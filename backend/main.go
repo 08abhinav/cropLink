@@ -20,6 +20,7 @@ func main() {
 		AllowOrigins: "http://localhost:5173",
 		AllowCredentials: true,
 	}))
+
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("can't load .env file:", err)
@@ -50,6 +51,5 @@ func main() {
 	}
 
 	routes.UrlRoutes(app, repo)
-
 	log.Fatal(app.Listen(":8080"))
 }
