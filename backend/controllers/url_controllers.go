@@ -184,6 +184,47 @@ func CreateCustomUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 	})
 }
 
+func DeleteUserUrl(ctx *fiber.Ctx, db *gorm.DB) error {
+    userID, ok := ctx.Locals("user_id").(string)
+    if !ok || userID == "" {
+        return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+            "message": "unauthorized",
+        })
+    }
+
+    shortUrl := ctx.Params("shortUrl") 
+    if shortUrl == "" {
+        return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "message": "Missing URL identifier",
+        })
+    }
+
+    var url model.Url
+    if err := db.Where("short_url = ? AND user_id = ?", shortUrl, userID).First(&url).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+                "message": "URL not found",
+            })
+        }
+        return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "message": "database error",
+            "error":   err.Error(),
+        })
+    }
+
+    if err := db.Delete(&url).Error; err != nil {
+        return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "message": "could not delete URL",
+            "error":   err.Error(),
+        })
+    }
+
+    return ctx.JSON(fiber.Map{
+        "message": "URL deleted successfully",
+        "short_url": shortUrl,
+    })
+}
+
 type DashboardStats struct {
 	TotalLinks     int64  `json:"total_links"`
 	TotalClicks    int64  `json:"total_clicks"`
@@ -244,4 +285,3 @@ func GetUserStat(ctx *fiber.Ctx, db *gorm.DB) error {
 
     return ctx.JSON(res)
 }
-
