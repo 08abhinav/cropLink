@@ -4,7 +4,7 @@ CropLink is a full-stack web application that allows users to shorten long URLs,
 
 ---
 
-## 🚀 Features
+## Features
 
 * 🔐 **Authentication with Clerk**
 
