@@ -12,6 +12,7 @@ import {
   UserButton,
 } from "@clerk/clerk-react";
 import ProtectedRoute from "./lib/ProtectedRoute";
+import CustomUrlPage from "./pages/CustomUrl";
 
 const App = () => {
   return (
@@ -39,6 +40,13 @@ const App = () => {
         element={
           <ProtectedRoute>
             <UrlCreation />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/customCreation" 
+        element={
+          <ProtectedRoute>
+            <CustomUrlPage/>
           </ProtectedRoute>
         } />
       </Routes>
