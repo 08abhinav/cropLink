@@ -1,6 +1,3 @@
-
----
-
 # 🔗 CropLink - URL Shortener and Tracker
 
 CropLink is a full-stack web application that allows users to shorten long URLs, customize urls, track clicks, and manage their link history from a personalized dashboard.
