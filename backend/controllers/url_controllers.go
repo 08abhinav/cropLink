@@ -101,13 +101,17 @@ func RedirectUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 		return ctx.Status(fiber.StatusNotFound).SendString("Short URL not found")
 	}
 
-	if err := db.Model(&url).
-		UpdateColumn("clicked", gorm.Expr("clicked + ?", 1)).Error; err != nil {
-		// fmt.Println("Failed to update click count:", err)
+	// Expiration check
+	if !url.ExpiresAt.IsZero() && url.ExpiresAt.Before(time.Now()) {
+		return ctx.Status(fiber.StatusGone).SendString("Short URL has expired")
+	}
+
+	if err := db.Model(&url).UpdateColumn("clicked", gorm.Expr("clicked + ?", 1)).Error; err != nil {
 	}
 
 	return ctx.Redirect(url.OriginalUrl, fiber.StatusFound)
 }
+
 
 func CreateCustomUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 	type RequestBody struct {
