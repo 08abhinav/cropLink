@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Nav from "@/customcomponents/Nav";
+import Nav from "@/components/Nav";
 import { ClipboardIcon, LinkIcon, ArrowRightIcon } from "lucide-react";
 import axios from "@/lib/axios";
 import { toast } from "react-toastify";
@@ -18,7 +18,7 @@ const UrlCreation = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("/url/createUrl", form)
+      await axios.post("url/createUrl", form)
       setLoading(true);
       toast.success("URL shortened!");
       navigate("/dashboard")
@@ -33,12 +33,10 @@ const UrlCreation = () => {
     }
   };
 
-
-
   return (
     <>
       <Nav />
-      <section className="min-h-screen bg-gradient-to-r from-green-50 via-white to-blue-100 py-16 px-6 font-serif">
+      <section className="py-35 min-h-screen bg-gradient-to-r from-green-50 via-white to-blue-100 px-6 font-serif">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-start">
           
           {/* Left Promo / Stats Panel */}
@@ -106,7 +104,7 @@ const UrlCreation = () => {
                   <input
                     type="url"
                     name="original_url"
-                    placeholder="https://example.com/very/long/link"
+                    placeholder="http://example.com/very/long/link"
                     value={form.original_url}
                     onChange={handleChange}
                     className="w-full rounded-xl border border-gray-300 px-5 py-3 pr-32 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
