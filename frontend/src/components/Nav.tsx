@@ -34,7 +34,7 @@ const Nav = () => {
               <Button 
                 variant="ghost" 
                 size="default" 
-                className="text-white border border-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all"
+                className="text-white cursor-pointer border border-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all"
               >
                 <BarChart3 className="w-4 h-4 mr-2 text-gray-300 group-hover:text-white transition-colors" />
                 Dashboard
