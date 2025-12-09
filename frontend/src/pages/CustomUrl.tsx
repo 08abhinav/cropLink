@@ -43,60 +43,97 @@ const CustomUrlPage = () => {
   return (
     <>
       <Nav />
-      <section className="min-h-screen bg-gradient-to-r from-green-50 via-white to-blue-100 px-6 py-16 font-sans">
-        <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl p-10 flex flex-col gap-8">
-          <h2 className="text-3xl font-bold text-center">Create a Custom URL</h2>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Original URL */}
-            <input
-              type="url"
-              name="original_url"
-              placeholder="https://example.com/very/long/link"
-              value={form.original_url}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-gray-300 px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-            <div className="flex flex-col gap-1">
+      <section className="pt-32 pb-16 min-h-screen bg-black px-6 text-gray-200">
+        <div className="max-w-3xl mx-auto">
+
+          {/* Title */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white tracking-tight">
+              Create a{" "}
+              <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-400 bg-clip-text text-transparent">
+                Custom URL
+              </span>
+            </h1>
+            <p className="text-lg text-gray-400">
+              Personalize your short links with your own unique alias.
+            </p>
+          </div>
+
+          {/* Main Card */}
+          <div className="p-8 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-xl">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+
+              {/* Original URL */}
+              <div className="flex flex-col gap-2">
+                <label className="text-gray-300 font-medium">Original URL</label>
                 <input
-                    type="text"
-                    name="custom_url"
-                    placeholder="Short-url"
-                    value={form.custom_url}
-                    onChange={handleChange}
-                    className="w-full rounded-xl border border-gray-300 px-5 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+                  type="url"
+                  name="original_url"
+                  placeholder="https://example.com/long/url"
+                  value={form.original_url}
+                  onChange={handleChange}
+                  required
+                  className="bg-black/30 border border-white/20 rounded-xl px-5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
-                <p className="text-gray-500 text-sm">
-                    Atleast 6 characters long and must contain at least <span className="font-semibold">2 digits (0-9)</span>, <span className="font-semibold">1 uppercase letter</span>, and <span className="font-semibold">1 lowercase letter</span>.
+              </div>
+
+              {/* Custom URL */}
+              <div className="flex flex-col gap-2">
+                <label className="text-gray-300 font-medium">Custom Alias</label>
+                <input
+                  type="text"
+                  name="custom_url"
+                  placeholder="myCustom123"
+                  value={form.custom_url}
+                  onChange={handleChange}
+                  className="bg-black/30 border border-white/20 rounded-xl px-5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                />
+                <p className="text-gray-400 text-sm leading-5">
+                  Must be at least{" "}
+                  <span className="font-semibold text-gray-200">6 characters</span> long and
+                  contain at least{" "}
+                  <span className="font-semibold text-gray-200">2 digits</span>,{" "}
+                  <span className="font-semibold text-gray-200">1 uppercase</span>{" "}
+                  and <span className="font-semibold text-gray-200">1 lowercase</span>.
                 </p>
-            </div>
+              </div>
 
-            <button
-              type="submit"
-              disabled={!form.original_url || loading}
-              className="relative flex items-center justify-center bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white font-semibold py-3 rounded-xl text-lg transition shadow-lg disabled:opacity-60"
-            >
-              {loading ? (
-                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2" />
-              ) : (
-                <LinkIcon className="w-5 h-5 mr-2" />
-              )}
-              Shorten URL
-            </button>
-          </form>
-
-          {/* Generated Short URL */}
-          {shortUrl && (
-            <div className="flex items-center justify-between bg-green-100 rounded-xl p-4 mt-4">
-              <a href={shortUrl} target="_blank" className="text-green-800 font-medium underline">
-                {shortUrl}
-              </a>
-              <button onClick={handleCopy} className="flex items-center gap-2 text-green-700 font-semibold hover:text-green-900">
-                <ClipboardIcon className="w-4 h-4" />
-                Copy
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={!form.original_url || loading}
+                className="relative flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-semibold py-3 rounded-xl text-lg transition shadow-lg disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2" />
+                ) : (
+                  <LinkIcon className="w-5 h-5 mr-2" />
+                )}
+                Shorten URL
               </button>
-            </div>
-          )}
+            </form>
+
+            {/* Result */}
+            {shortUrl && (
+              <div className="mt-8 p-5 flex items-center justify-between bg-white/10 backdrop-blur-xl border border-white/10 rounded-xl">
+                <a
+                  href={shortUrl}
+                  target="_blank"
+                  className="text-purple-300 font-medium underline text-lg"
+                >
+                  {shortUrl}
+                </a>
+
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-2 text-gray-200 font-medium hover:text-white"
+                >
+                  <ClipboardIcon className="w-5 h-5" />
+                  Copy
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </>
