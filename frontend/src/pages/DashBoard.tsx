@@ -2,9 +2,11 @@ import Nav from "@/components/Nav";
 import UserUrlsList from "@/components/UserUrls";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useUser } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const now = new Date();
+  const navigate = useNavigate();
   const { user } = useUser();
   const { links, clicks, lastCreated, userUrls, loadingUrls, loadingStats } =
     useDashboardStats();
@@ -30,6 +32,17 @@ const Dashboard = () => {
             <p className="text-lg text-gray-400">
               Manage your links and track your activity at a glance.
             </p>
+          </div>
+          {/* Creation button */}
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={()=> navigate("/urlCreation")}
+              className="px-8 py-3 text-lg font-semibold rounded-xl 
+                bg-gradient-to-r from-purple-500 via-pink-500 to-red-500
+                text-white shadow-lg hover:shadow-2xl transition-all 
+                hover:scale-105 active:scale-95 cursor-pointer">
+              Create New Short URL
+            </button>
           </div>
 
           {/* Stats Section with Glassmorphism */}
@@ -69,7 +82,6 @@ const Dashboard = () => {
               Your Created URLs
             </h2>
             <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-md">
-              {/* Keep your <UserUrlsList /> glass-styled */}
               <p className="text-gray-400 text-sm mb-4">
                 All your shortened links in one place.
               </p>
