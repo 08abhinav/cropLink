@@ -1,8 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* CropLink Design System - Modern URL Shortener Theme */
+@import "tailwindcss";
 
 @layer base {
   :root {
@@ -122,7 +118,7 @@
   }
 }
 
-@layer base {
+/* @layer base {
   * {
     @apply border-border;
   }
@@ -130,4 +126,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
+} */
