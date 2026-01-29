@@ -17,7 +17,7 @@ import (
 func main() {
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173",
+		AllowOrigins: "http://localhost:5173, http://localhost:3000, http://localhost",
 		AllowCredentials: true,
 	}))
 
@@ -50,6 +50,9 @@ func main() {
 		DB: db,
 	}
 
+	app.Get("/", func(c *fiber.Ctx) error{
+		return c.SendString("Hello from backend")
+	})
 	routes.UrlRoutes(app, repo)
 	log.Fatal(app.Listen(":8080"))
 }
