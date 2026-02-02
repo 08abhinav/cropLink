@@ -6,22 +6,22 @@ CropLink is a full-stack web application that allows users to shorten long URLs,
 
 ## Features
 
-* 🔐 **Authentication with Clerk**
+**Authentication with Clerk**
 
   * Users can securely register, log in, and manage sessions using **Clerk**.
   * Clerk provides a pre-built authentication flow (sign-up, login, logout, forgot password) with support for social logins.
 
-* ✂️ **Custom URL Shortening**
+ **Custom URL Shortening**
 
   * Users can generate short URLs automatically, **or create custom short codes** (e.g., `croplink.io/mybrand`).
 
-* ⏳ **URL Expiration**
+ **URL Expiration**
 
   * All shortened URLs automatically **expire 12 hours** after creation.
   * After expiration, attempting to access the URL will show an **"expired link"** page instead of redirecting.
 
 
-* 📊 **Dashboard**
+ **Dashboard**
 
   * View stats like total links, total clicks, last activity.
   * Each short URL shows:
@@ -31,20 +31,20 @@ CropLink is a full-stack web application that allows users to shorten long URLs,
     * Expiration status
     * Date created
 
-* 🔁 **Redirection**
+ **Redirection**
 
   * Short URLs seamlessly redirect to the original destination until they expire.
 
-* ⏱️ **Click Tracking**
+ **Click Tracking**
 
   * Every visit increments a counter in real-time.
   * Tracks metrics like **last clicked time** and **total clicks** per URL.
 
-* 🧠 **Componentized Frontend**
+ **Componentized Frontend**
 
   * Built with **React + TypeScript**, styled with **Tailwind + Shadcn/UI** for a modern and responsive UI.
 
-* 🌐 **REST API**
+ **REST API**
 
   * Built with **Go (Fiber + GORM + PostgreSQL)**.
   * Handles authentication, URL shortening, redirection, expiration, and analytics.
