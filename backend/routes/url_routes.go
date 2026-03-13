@@ -8,7 +8,7 @@ import (
 )
 
 func UrlRoutes(app *fiber.App, repo *shared.Repos) {
-	api := app.Group("url", middleware.ClerkAuth())
+	api := app.Group("api", middleware.ClerkAuth())
 
 	api.Post("/createUrl", func(c *fiber.Ctx) error {
 		return controllers.CreateShortUrl(c, repo.DB)
@@ -18,7 +18,7 @@ func UrlRoutes(app *fiber.App, repo *shared.Repos) {
 		return controllers.CreateCustomUrl(c, repo.DB)
 	})
 
-	api.Post("/deleteUrl", func(c *fiber.Ctx) error{
+	api.Post("/deleteUrl/:id", func(c *fiber.Ctx) error{
 		return controllers.DeleteUserUrl(c, repo.DB)
 	})
 
