@@ -19,7 +19,7 @@ const UrlCreation = () => {
     setLoading(true);
 
     try {
-      await axios.post("url/createUrl", form);
+      await axios.post("api/createUrl", form);
       toast.success("URL shortened!");
       navigate("/dashboard");
     } catch (err: any) {
