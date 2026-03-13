@@ -11,8 +11,8 @@ export interface UserUrl {
 }
 
 export function useDashboardStats() {
-  const [email, setEmail] = useState("");
-  const [uname, setUName] = useState("");
+  const [email] = useState("");
+  const [uname] = useState("");
 
   const [links, setLinks] = useState<number>(0);
   const [clicks, setClicks] = useState<number>(0);
@@ -24,7 +24,7 @@ export function useDashboardStats() {
 
   useEffect(() => {
     axios
-      .get("/url/getStats", { withCredentials: true })
+      .get("/api/getStats", { withCredentials: true })
       .then((res) => {
         setClicks(res.data.total_clicks ?? res.data.TotalClicks ?? 0);
         setLinks(res.data.total_links ?? res.data.TotalLinks ?? 0);
@@ -41,7 +41,7 @@ export function useDashboardStats() {
     const fetchUrls = async () => {
       setLoadingUrls(true);
       try {
-        const res = await axios.get("/url/my-urls", {
+        const res = await axios.get("/api/my-urls", {
           withCredentials: true,
         });
         setUserUrls(res.data.urls || res.data);
