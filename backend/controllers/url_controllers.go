@@ -196,25 +196,26 @@ func DeleteUserUrl(ctx *fiber.Ctx, db *gorm.DB) error {
         })
     }
 
-    shortUrl := ctx.Params("shortUrl") 
-    if shortUrl == "" {
+    id := ctx.Params("id") 
+    if id == "" {
         return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
             "message": "Missing URL identifier",
         })
     }
 
     var url model.Url
-    if err := db.Where("short_url = ? AND user_id = ?", shortUrl, userID).First(&url).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-                "message": "URL not found",
-            })
-        }
-        return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "message": "database error",
-            "error":   err.Error(),
-        })
-    }
+    if err := db.Where("id = ? AND user_id = ?", id, userID).First(&url).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "URL not found",
+			})
+		}
+
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "database error",
+			"error":   err.Error(),
+		})
+	}
 
     if err := db.Delete(&url).Error; err != nil {
         return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -225,7 +226,7 @@ func DeleteUserUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 
     return ctx.JSON(fiber.Map{
         "message": "URL deleted successfully",
-        "short_url": shortUrl,
+        "id":      id,
     })
 }
 
