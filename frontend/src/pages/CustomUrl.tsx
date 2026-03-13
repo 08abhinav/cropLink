@@ -19,7 +19,7 @@ const CustomUrlPage = () => {
     setShortUrl(null);
 
     try {
-      const res = await axios.post("url/create-customUrl", form);
+      const res = await axios.post("api/create-customUrl", form);
       setShortUrl(res.data.short_url);
       toast.success("Short URL created successfully!");
     } catch (err: any) {
