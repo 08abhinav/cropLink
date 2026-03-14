@@ -24,18 +24,19 @@ const UserUrlsList: React.FC<Props> = ({ urls, loading }) => {
       toast.info("Delete cancelled");
       return;
     }
+
     const token = localStorage.getItem("token");
 
     try {
-      const res = await axios.post(`/api/deleteUrl/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res) {
-        throw new Error("Delete failed");
-      }
+      await axios.post(
+        `/api/deleteUrl/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       setAllUrls((prev) => prev.filter((url) => url.id !== id));
 
@@ -63,47 +64,65 @@ const UserUrlsList: React.FC<Props> = ({ urls, loading }) => {
   }
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-3">
       {allUrls.map((u) => (
+
         <div
           key={u.id}
-          className="bg-black p-5 rounded-xl shadow-lg flex flex-col lg:flex-row lg:items-center gap-4 border border-gray-700 text-white hover:shadow-2xl transition w-full overflow-hidden"
+          className="bg-black p-5 rounded-xl shadow-lg grid grid-cols-1 lg:grid-cols-[2.3fr_2fr_1fr_1fr_0.8fr] gap-6 border border-gray-700 text-white hover:shadow-2xl transition w-full overflow-hidden items-start"
         >
-          <div className="lg:w-[35%] min-w-0">
+          {/* Original URL */}
+          <div className="min-w-0">
             <div className="text-xs text-gray-500 mb-1">Original URL</div>
             <div className="break-words text-gray-200 font-medium text-sm">
               {u.original_url}
             </div>
           </div>
 
-          <div className="lg:w-[25%] min-w-0">
+          {/* Short URL */}
+          <div className="min-w-0">
             <div className="text-xs text-gray-500 mb-1">Short URL</div>
-            <div className="break-words text-blue-400 font-semibold text-sm">
-              <a
-                href={`${baseURL}/${u.short_url}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-blue-300"
-              >
-                {`${baseURL}/${u.short_url}`}
-              </a>
-            </div>
+            <a
+              href={`${baseURL}/${u.short_url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-words text-blue-400 font-semibold text-sm underline hover:text-blue-300"
+            >
+              {`${baseURL}/${u.short_url}`}
+            </a>
           </div>
 
-          <div className="flex gap-6 flex-wrap text-sm lg:w-[20%] mt-2 lg:mt-0">
+          {/* Stats */}
+          <div className="flex gap-6 flex-wrap text-sm">
             <div>
-              <div className="text-gray-500">Clicks</div>
+              <div className="text-gray-500 text-sm">Clicks</div>
               <div className="font-bold text-white">{u.clicked}</div>
             </div>
+
             <div>
-              <div className="text-gray-500">Created</div>
+              <div className="text-gray-500 text-sm">Created</div>
               <div className="font-medium text-gray-200">
                 {new Date(u.created_at).toLocaleDateString()}
               </div>
             </div>
           </div>
 
-          <div className="lg:w-[20%] flex lg:justify-end">
+          {/* status */}
+          <div>
+            <div className="text-sm text-gray-500">Status</div>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  u.is_active
+                    ? "bg-green-500/20 text-green-400"
+                    : "bg-red-500/20 text-red-400"
+                }`}
+              >
+              {u.is_active ? "Active" : "Inactive"}
+            </span>
+          </div>
+
+          {/* Delete */}
+          <div className="flex lg:justify-end">
             <button
               onClick={() => handleDelete(u.id)}
               className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 transition text-sm font-medium text-white cursor-pointer whitespace-nowrap"
