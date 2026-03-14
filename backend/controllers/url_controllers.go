@@ -74,7 +74,7 @@ func GetUserUrls(ctx *fiber.Ctx, db *gorm.DB) error {
         })
     }
 
-    var urls []model.Url
+	var urls []model.Url
     if err := db.
         Where("user_id = ? AND (expires_at IS NULL OR expires_at > ?)", userID, time.Now()).
         Order("created_at desc").
@@ -82,12 +82,36 @@ func GetUserUrls(ctx *fiber.Ctx, db *gorm.DB) error {
         return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
             "message": "database error",
             "error":   err.Error(),
-        })
-    }
+		})
+	}
+	
+    type UrlResponse struct {
+		ID         	  uint         `json:"id"`
+		OriginalURL   string       `json:"original_url"`
+		ShortURL      string       `json:"short_url"`
+		Clicked       uint         `json:"clicked"`
+		CreatedAt     time.Time    `json:"created_at"`
+		ExpiresAt     *time.Time   `json:"expires_at"`
+		IsActive      bool         `json:"is_active"`
+	}
 
-    return ctx.JSON(fiber.Map{
-        "urls": urls,
-    })
+	var response []UrlResponse
+	
+	for _, url := range urls {
+		response = append(response, UrlResponse{
+			ID: url.ID,
+			OriginalURL: url.OriginalUrl,
+			ShortURL: url.ShortUrl,
+			Clicked: url.Clicked,
+			CreatedAt: url.CreatedAt,
+			ExpiresAt: url.ExpiresAt,
+			IsActive: url.IsActive,
+		})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"urls": response,
+	})
 }
 
 func RedirectUrl(ctx *fiber.Ctx, db *gorm.DB) error {
