@@ -41,13 +41,13 @@ func CreateShortUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 	baseUrl := os.Getenv("BASE_URL")
 	shortUrl := fmt.Sprintf("%s/%s", baseUrl, shortCode)
 
-	expiry := time.Now().Add(12 * time.Hour)
-
+	expiry := time.Now().Add(6 * time.Hour)
 	newUrl := model.Url{
 		OriginalUrl: body.OriginalUrl,
 		ShortUrl:    shortCode,
 		Clicked:     0,
-		ExpiresAt:   expiry,
+		ExpiresAt:   &expiry,
+		IsActive:	 true,
 		UserID:      userId,
 	}
 
@@ -97,13 +97,19 @@ func RedirectUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 	}
 
 	var url model.Url
-	if err := db.Where("short_url = ?", short).First(&url).Error; err != nil {
+	if err := db.Where("short_url = ? AND is_active = ?", short, true).First(&url).Error; err != nil {
 		return ctx.Status(fiber.StatusNotFound).SendString("Short URL not found")
 	}
 
-	// Expiration check
-	if !url.ExpiresAt.IsZero() && url.ExpiresAt.Before(time.Now()) {
-		return ctx.Status(fiber.StatusGone).SendString("Short URL has expired")
+	// shortid status
+	if !url.IsActive {
+		return ctx.Status(fiber.StatusNotFound).SendString("Short URL inactive")
+	}
+
+	// expiry check
+	if url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now()) {
+		db.Model(&url).Update("is_active", false)
+		return ctx.Status(fiber.StatusNotFound).SendString("Short URL expired")
 	}
 
 	if err := db.Model(&url).UpdateColumn("clicked", gorm.Expr("clicked + ?", 1)).Error; err != nil {
@@ -111,7 +117,6 @@ func RedirectUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 
 	return ctx.Redirect(url.OriginalUrl, fiber.StatusFound)
 }
-
 
 func CreateCustomUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 	type RequestBody struct {
@@ -162,10 +167,12 @@ func CreateCustomUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 		})
 	}
 
+	expiry := time.Now().Add(6 * time.Hour)
 	newUrl := model.Url{
 		OriginalUrl: body.OriginalUrl,
 		ShortUrl:    body.CustomUrl,
 		Clicked:     0,
+		ExpiresAt:   &expiry,
 		UserID:      userId,
 		IsCustom:    true,
 	}
