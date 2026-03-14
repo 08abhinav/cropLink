@@ -11,7 +11,8 @@ type Url struct {
 	ShortUrl    string    `json:"short_url" gorm:"uniqueIndex"`
 	IsCustom    bool      `json:"is_custom" gorm:"default:false"`
 	Clicked     uint      `json:"clicked"`
-	ExpiresAt   time.Time `json:"expires_at" gorm:"type:timestamp;default:null"`
+	ExpiresAt 	*time.Time `json:"expires_at,omitempty" gorm:"type:timestamp"`
+	IsActive    bool       `json:"is_active" gorm:"default:true"`
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UserID      string    `json:"user_id"`
 }
