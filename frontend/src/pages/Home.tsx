@@ -20,7 +20,7 @@ const Home = () => {
           CropLink
         </h1>
         <p className="text-lg text-gray-300 max-w-2xl mb-8 leading-relaxed">
-          Shorten your links, manage them with ease, and track insights — all in one
+          Shorten your links, manage them with ease, and track insights all in one
           place. <span className="text-white font-semibold">Simple. Fast. Reliable.</span>
         </p>
         <Link
