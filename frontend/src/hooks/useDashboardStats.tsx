@@ -7,6 +7,7 @@ export interface UserUrl {
   original_url: string;
   short_url: string;
   clicked: number;
+  is_active: boolean,
   created_at: string;
 }
 
@@ -44,7 +45,7 @@ export function useDashboardStats() {
         const res = await axios.get("/api/my-urls", {
           withCredentials: true,
         });
-        setUserUrls(res.data.urls || res.data);
+        setUserUrls(res.data.urls || []);
       } catch (e) {
         console.error("Failed to fetch user URLs", e);
         setUserUrls([]);
