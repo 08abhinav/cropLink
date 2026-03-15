@@ -21,9 +21,8 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("can't load .env file:", err)
+	if err := godotenv.Load(".env"); err != nil {
+		log.Println(".env not found, using container environment variables")
 	}
 
 	os.Getenv("JWT_SECRETKEY")
