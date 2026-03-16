@@ -25,7 +25,6 @@ func main() {
 		log.Println(".env not found, using container environment variables")
 	}
 
-	os.Getenv("JWT_SECRETKEY")
 	config := &storage.Config{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
