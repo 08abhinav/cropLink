@@ -1,27 +1,64 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend-deploy
-  namespace: croplink
-  labels:
-    app: backend
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: backend-config
+    namespace: croplink
+  data:
+    DB_HOST: postgres-service
+    DB_PORT: "5432"
+    DB_DBNAME: croplink
+    DB_SSLMODE: disable
+    BASE_URL: "http://localhost:8080"
+
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: backend-secret
+    namespace: croplink
+  type: Opaque
+  data:
+    DB_USER: cG9zdGdyZXM=
+    DB_PASSWORD: cGFzc3dvcmQ=
+    CLERK_SECRET_KEY: c2tfdGVzdF8xaXd1MWpaVGIyVEtZSmNjam1kdTE4TEhlZ054d1FGcWs0SWVOMWRrbHU=
+
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: backend-deploy
+    namespace: croplink
+    labels:
       app: backend
-  template:
-    metadata:
-      labels:
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
         app: backend
-    spec:
-      containers:
-        - image: 08abhinav/croplinkbackend:latest
-          name: backend-img
-          ports:
-            - containerPort: 8080
-          envFrom:
-            - secretRef:
-                name: backend-secret
-            - configMapRef:
-                name: backend-config
+    template:
+      metadata:
+        labels:
+          app: backend
+      spec:
+        containers:
+          - image: 08abhinav/croplinkbackend:latest
+            name: backend-img
+            ports:
+              - containerPort: 8080
+            envFrom:
+              - secretRef:
+                  name: backend-secret
+              - configMapRef:
+                  name: backend-config
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: backend
+    namespace: croplink 
+  spec:
+    ports:
+      - port: 8080
+        targetPort: 8080
+    selector: 
+      app: backend
