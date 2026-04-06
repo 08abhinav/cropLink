@@ -3,23 +3,32 @@ package main
 import (
 	"log"
 	"os"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/08abhinav/cropLink/model"
 	"github.com/08abhinav/cropLink/routes"
 	"github.com/08abhinav/cropLink/shared"
 	"github.com/08abhinav/cropLink/storage"
+	"github.com/08abhinav/cropLink/monitoring/metrics"
+	"github.com/08abhinav/cropLink/monitoring/middleware"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/adaptor/v2"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 
 func main() {
 	app := fiber.New()
+	
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "http://localhost:5173, http://localhost:3000, http://localhost",
 		AllowCredentials: true,
 	}))
+
+	metrics.InitMetrics()
+	app.Use(middleware.PrometheusMiddleware())
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Println(".env not found, using container environment variables")
@@ -49,8 +58,13 @@ func main() {
 	}
 
 	app.Get("/", func(c *fiber.Ctx) error{
-		return c.SendString("Hello from backend")
+		return c.Status(http.StatusOK).JSON(fiber.Map{
+			"message": "Croplink Backend running",
+		})
 	})
-	routes.UrlRoutes(app, repo)
+	
+	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
+
+	routes.UrlRoutes(app, repo)	
 	log.Fatal(app.Listen(":8080"))
 }
