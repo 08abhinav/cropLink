@@ -46,12 +46,32 @@ services:
       args:
         VITE_BACKEND_BASE_URL: ${BACKEND_BASE_URL}
         VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY}
-    container_name: croplink-frontend
+    container_name: croplink_frontend
     ports:
       - "80:80"
     depends_on:
       - backend
     networks:
+      - url_network
+
+  prom-server:
+    image: prom/prometheus
+    container_name: prometheus_server
+    ports:
+      - 9090:9090
+    volumes:
+      - ./backend/prometheus-config.yaml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+    networks:
+      - url_network
+  
+  grafana-server:
+    image: grafana/grafana-oss
+    container_name: grafana_server
+    ports:
+      - 3000:3000 
+    networks: 
       - url_network
 
 volumes:
