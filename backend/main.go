@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"os"
+	"time"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/08abhinav/cropLink/model"
@@ -50,8 +52,21 @@ func main() {
 	}
 
 	app.Get("/", func(c *fiber.Ctx) error{
-		return c.SendString("Hello from backend")
+		return c.Status(http.StatusFound).JSON(fiber.Map{
+			"message": "Hello from backend",
+		})
 	})
+
+	start_time := time.Now()
+	app.Get("/health", func(c *fiber.Ctx) error{
+		uptime := time.Since(start_time)
+		return c.Status(http.StatusFound).JSON(fiber.Map{
+			"status": "healthy",
+			"uptime_seconds": int(uptime.Seconds()),
+			"uptime_minutes": int(uptime.Minutes()),
+		})
+	})
+
 	routes.UrlRoutes(app, repo)
 	log.Fatal(app.Listen(":8080"))
 }
