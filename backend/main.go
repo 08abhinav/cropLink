@@ -52,7 +52,7 @@ func main() {
 	}
 
 	app.Get("/", func(c *fiber.Ctx) error{
-		return c.Status(http.StatusFound).JSON(fiber.Map{
+		return c.Status(http.StatusOK).JSON(fiber.Map{
 			"message": "Hello from backend",
 		})
 	})
@@ -60,7 +60,7 @@ func main() {
 	start_time := time.Now()
 	app.Get("/health", func(c *fiber.Ctx) error{
 		uptime := time.Since(start_time)
-		return c.Status(http.StatusFound).JSON(fiber.Map{
+		return c.Status(http.StatusOK).JSON(fiber.Map{
 			"status": "healthy",
 			"uptime_seconds": int(uptime.Seconds()),
 			"uptime_minutes": int(uptime.Minutes()),
