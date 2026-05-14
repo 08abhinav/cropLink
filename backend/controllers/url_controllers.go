@@ -17,6 +17,12 @@ func CreateShortUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 		OriginalUrl string `json:"original_url"`
 	}
 
+	userId, ok := ctx.Locals("user_id").(string)
+	if !ok || userId == "" {
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthorized"})
+	}
+
 	var body RequestBody
 	if err := ctx.BodyParser(&body); err != nil {
 
@@ -31,10 +37,22 @@ func CreateShortUrl(ctx *fiber.Ctx, db *gorm.DB) error {
 			"message": "Original url is required"})
 	}
 
-	userId, ok := ctx.Locals("user_id").(string)
-	if !ok || userId == "" {
-		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"message": "unauthorized"})
+	var urlexist model.Url
+	err := db.Where(
+		"user_id = ? AND original_url = ? AND is_active = ? AND expires_at > ?", userId, body.OriginalUrl, true, time.Now(),
+	).First(&urlexist).Error
+	
+	if err == nil{
+		return ctx.Status(http.StatusConflict).JSON(fiber.Map{
+			"message": "URL already exist",
+		})
+	}
+
+	if err != gorm.ErrRecordNotFound {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Database error",
+			"error": err.Error(),
+		})
 	}
 
 	shortCode := utils.GenerateShortCode(6)
