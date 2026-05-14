@@ -23,7 +23,11 @@ const UrlCreation = () => {
       toast.success("URL shortened!");
       navigate("/dashboard");
     } catch (err: any) {
-      toast.error(err.message || "Something went wrong");
+      if (err.response?.status === 409) {
+        toast.error("URL already exists");
+      } else {
+        toast.error(err.response?.data?.message || "Something went wrong")
+      }
     } finally {
       setLoading(false);
     }
