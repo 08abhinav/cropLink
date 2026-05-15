@@ -9,9 +9,7 @@ import (
 
 func UrlRoutes(app *fiber.App, repo *shared.Repos) {
 	api := app.Group("api", middleware.ClerkAuth())
-
-	api.Use(middleware.RateLimiter())
-
+	
 	api.Post("/createUrl", func(c *fiber.Ctx) error {
 		return controllers.CreateShortUrl(c, repo.DB)
 	})
