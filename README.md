@@ -116,7 +116,7 @@ cd frontend
 npm install
 ```
 
-* Create a .env file and add required backend variables:
+* Create a .env file at root and add required backend variables:
 ```text
   VITE_BACKEND_BASE_URL
   VITE_PUBLISHABLE_KEY
