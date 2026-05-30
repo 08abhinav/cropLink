@@ -11,7 +11,7 @@ import (
 	"github.com/08abhinav/cropLink/shared"
 	"github.com/08abhinav/cropLink/storage"
 	"github.com/08abhinav/cropLink/monitoring/metrics"
-	"github.com/08abhinav/cropLink/monitoring/middleware"
+	"github.com/08abhinav/cropLink/monitoring/monitormiddleware"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/joho/godotenv"
@@ -28,7 +28,7 @@ func main() {
 	}))
 
 	metrics.InitMetrics()
-	app.Use(middleware.PrometheusMiddleware())
+	app.Use(monitormiddleware.PrometheusMiddleware())
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Println(".env not found, using container environment variables")
