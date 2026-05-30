@@ -73,7 +73,7 @@ services:
       - 3000:3000 
     networks: 
       - url_network
-
+  
 volumes:
   pgdata:
 
