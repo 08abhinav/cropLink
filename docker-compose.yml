@@ -54,6 +54,17 @@ services:
     networks:
       - url_network
 
+  k6-server:
+    image: grafana/k6:master-with-browser
+    container_name: k6_server
+    volumes:
+      - ./testing:/scripts/
+    command: run /scripts/index.js
+    depends_on:
+      - backend
+    networks: 
+      - url_network
+
 volumes:
   pgdata:
 
