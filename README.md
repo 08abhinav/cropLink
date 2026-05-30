@@ -69,6 +69,7 @@ Services are isolated into independent containers:
 * Dockerized services communicate using internal Docker network.
 
 ## System Architecture
+```text
   User
     ↓
   Frontend (React)
@@ -76,7 +77,7 @@ Services are isolated into independent containers:
   Backend (Go Fiber)
     ↓
   PostgreSQL
-
+```
 ---
 
 ## Installation and Setup
