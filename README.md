@@ -5,7 +5,6 @@ CropLink is a full-stack web application that allows users to shorten long URLs,
 ---
 
 ## Features
-
 **Authentication with Clerk**
   * Users can securely register, log in, and manage sessions using **Clerk**.
   * Clerk provides a pre-built authentication flow (sign-up, login, logout, forgot password) with support for social logins.
