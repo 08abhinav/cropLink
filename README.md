@@ -136,5 +136,4 @@ This starts:
 - frontend service
 - backend service
 - postgres service
-
 ---
