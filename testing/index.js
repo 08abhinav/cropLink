@@ -1,3 +1,4 @@
+import "dotenv/config"
 import http from "k6/http"
 import {sleep} from "k6"
 
@@ -7,10 +8,10 @@ export const options = {
 }
 
 export default function(){
-    http.get("http://backend:8080/api/my-urls")
-    http.get("http://backend:8080/api/getStats")
+    http.get(`${process.env.URL1}`)
+    http.get(`${process.env.URL2}`)
 
-    http.post("http://backend:8080/api/createUrl",
+    http.post(`${process.env.URL3}`,
         JSON.stringify({
             original_url: "http://google.com"
         }),
@@ -20,7 +21,7 @@ export default function(){
             },
         }
     )
-    http.post("http://backend:8080/api/create-customUrl",
+    http.post(`${process.env.URL4}`,
         JSON.stringify({
             original_url: "http://google.com",
             custom_url: "G00gle"
