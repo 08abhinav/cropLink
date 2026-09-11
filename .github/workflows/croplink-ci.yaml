@@ -15,7 +15,7 @@ env:
 
 jobs:
   checkout:
-    name: "Checkout: ${{ matrix.services.name }}"
+    name: "Checkout and Setup ${{ matrix.services.name }}"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,10 +24,12 @@ jobs:
         services:
           - name: "backend"
             dir: "./backend"
-            node-version: "22"
+            type: "go"
+            go-version: "22"
 
           - name: "frontend"
             dir: "./frontend"
+            type: "node"
             node-version: "22"
     defaults:
       run:
@@ -38,14 +40,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
+      - name: Set up Go
+        if: matrix.services.type == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.services.go-version }}
+          cache-dependency-path: ${{ matrix.services.dir }}/go.sum
+
+      - name: Tidy Go Modules
+        if: matrix.services.type == 'go'
+        run: go mod tidy
+
       - name: Set up node.js
+        if: matrix.services.type == 'node'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.services.node-version }}
           cache: 'npm'
           cache-dependency-path: '${{ matrix.services.dir }}/package-lock.json'
       
-      - name: Install dependencies
+      - name: Install Node dependencies
+        if: matrix.services.type == 'go'
         run: npm ci
   
   security:
