@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: 08abhinav
-  IMAGE_TAG: ${{github.sha}}
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   checkout:
@@ -32,7 +32,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ${{matrix.services.dir}}
+        working-directory: ${{ matrix.services.dir }}
     
     steps:
       - name: Checkout
@@ -41,9 +41,9 @@ jobs:
       - name: Set up node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{matrix.services.node-version}}
+          node-version: ${{ matrix.services.node-version }}
           cache: 'npm'
-          cache-dependency-path: '${{ matrix.service.dir }}/package-lock.json'
+          cache-dependency-path: '${{ matrix.services.dir }}/package-lock.json'
       
       - name: Install dependencies
         run: npm ci
@@ -60,9 +60,9 @@ jobs:
       - name: Gitleaks scan
         uses: gitleaks/gitleaks-action@v2
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  buld-push:
+  build-push:
     name: "Build, Scan and Push Image"
     runs-on: ubuntu-latest
     needs: [checkout, security]
@@ -81,24 +81,24 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-          -t $${{env.REGISTRY}}/${{matrix.services.image_name}}/${{env.IMAGE_TAG}} \
-          -t $${{env.REGISTRY}}/${{matrix.services.image_name}}:latest \
-          ${{matrix.services.context}}
+          -t ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }} \
+          -t ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:latest \
+          ${{ matrix.services.context }}
       
       - name: Scan Docker Image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{env.REGISTRY}}/${{matrix.services.image_name}}:${{env.IMAGE_TAG}}'
+          image-ref: '${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }}'
           format: 'table'
           exit-code: 0
       
       - name: Signin To Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{secrets.DockerHUB_USERNAME}}
-          password: ${{secrets.DockerHUB_PASSWORD}}
+          username: ${{ secrets.DockerHUB_USERNAME }}
+          password: ${{ secrets.DockerHUB_PASSWORD }}
       
       - name: Push Docker Image
         run: |
-          docker push ${{env.REGISTRY}}/${{matrix.services.image_name}}:${{env.IMAGE_TAG}}
-          docker push ${{env.REGISTRY}}/${{matrix.services.image_name}}:latest
+          docker push ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:latest
