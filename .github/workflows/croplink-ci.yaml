@@ -41,8 +41,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{matrix.services.node-version}}
-          cache: 'npm'
-          cache-dependency-path: '${{matrix.services.dir}}/package-lock.json'
       
       - name: Install dependencies
         run: npm ci
