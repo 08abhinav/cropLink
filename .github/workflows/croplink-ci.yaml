@@ -15,6 +15,7 @@ env:
 
 jobs:
   checkout:
+    name: "Checkout: ${{ matrix.services.name }}"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,7 +32,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: $${{matrix.services.dir}}
+        working-directory: ${{matrix.services.dir}}
     
     steps:
       - name: Checkout
