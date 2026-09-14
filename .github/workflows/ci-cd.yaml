@@ -1,0 +1,189 @@
+name: ci-cd
+
+on:
+  push:
+    branches:
+      - devops
+    path-ignore:
+      - "**.md"
+      - 'screenshots/**'
+      - 'docs/**'
+      - '.gitignore'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER_NAME: croplink-cluster
+  REGISTRY: 08abhinav
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  checkout:
+    name: "Checkout & Setup: ${{ matrix.services.name }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        services:
+          - name: "backend"
+            dir: "./backend"
+            type: "go"
+            go-version: "1.22" # Adjust to your Go version
+
+          - name: "frontend"
+            dir: "./frontend"
+            type: "node"
+            node-version: "22"
+            
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.services.dir }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        if: matrix.services.type == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.services.go-version }}
+          cache-dependency-path: ${{ matrix.services.dir }}/go.sum
+
+      - name: Tidy Go Modules
+        if: matrix.services.type == 'go'
+        run: go mod tidy
+
+      - name: Set up Node.js
+        if: matrix.services.type == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.services.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.services.dir }}/package-lock.json
+
+      - name: Install Node dependencies
+        if: matrix.services.type == 'node'
+        run: npm ci
+
+  security:
+    name: "Gitleaks Secret Scan"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-push:
+    name: "Build, Scan and Push Image"
+    runs-on: ubuntu-latest
+    needs: [checkout, security]
+    strategy:
+      matrix:
+        services:
+          - image_name: "croplink-backend"
+            context: "./backend"
+          - image_name: "croplink-frontend"
+            context: "./frontend"
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+          -t ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }} \
+          -t ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:latest \
+          ${{ matrix.services.context }}
+      
+      - name: Scan Docker Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }}'
+          format: 'table'
+          exit-code: 0
+      
+      - name: Sign in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DockerHUB_USERNAME }}
+          password: ${{ secrets.DockerHUB_PASSWORD }}
+      
+      - name: Push Docker Image
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:latest
+  
+  deploy:
+    name: "Deploy application to AWS EKS"
+    runs-on: self-hosted
+    needs: [checkout, security, build-push]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+           --region ${{ env.AWS_REGION }} \
+           --name ${{ env.EKS_CLUSTER_NAME }}
+      
+      - name: Verfiy cluster
+        run: |
+         kubectl get nodes
+
+      - name: Create Namespace
+        run: |
+          kubectl apply k8s/namespace.yaml
+      
+      - name: Set postgres secrets
+        run: |
+          sed \
+            -e "s|POSTGRES_USER: \"\"|POSTGRES_USER: \"${{ secrets.DB_USERNAME }}\"|" \
+            -e "s|POSTGRES_PASSWORD: \"\"|POSTGRES_PASSWORD: \"${{ secrets.DB_PASSWORD }}\"|" \
+            -e "s|POSTGRES_DB: \"\"|POSTGRES_DB: \"${{ secrets.DB_DBNAME }}\"|" \
+            k8s/pgdb/secret.yaml | kubectl apply -f -
+      
+      - name: Deploy postgres database
+        run: |
+          kubectl apply -f k8s/pgdb/statefulset.yaml
+          kubectl apply -f k8s/pgdb/service.yaml
+      
+      - name: Wait for DB
+        run: |
+          kubectl rollout status statefulset/postgres -n croplink --timeout=300s
+      
+      - name: Set Backend secrets
+        run: |
+          sed \
+            -e "s|DB_USER: \"\"|DB_USER: \"${{ secrets.DB_USER }}\"|" \
+            -e "s|DB_PASSWORD: \"\"|DB_PASSWORD: \"${{ secrets.DB_PASSWORD }}\"|" \
+            -e "s|CLERK_SECRET_KEY: \"\"|CLERK_SECRET_KEY: \"${{ secrets.CLERK_SECRET_KEY }}\"|" \
+            k8s/backend/secrets.yaml | kubectl apply -f -
+      
+      - name: Deploy Croplink Backend
+        run: |
+          kubectl apply -f k8s/backend/config.yaml
+          kubectl apply -f k8s/backend/deployment.yaml
+          kubectl apply -f k8s/backend/service.yaml
+      
+      - name: Deploy Croplink Frontend
+        run: |
+          kubectl apply -f k8s/frontend/deployment.yaml
+          kubectl apply -f k8s/frontend/service.yaml
