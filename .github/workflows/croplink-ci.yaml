@@ -5,6 +5,7 @@ on:
     branches: ["master"]
     path-ignore:
       - "**.md"
+      - 'screenshots/**'
       - 'docs/**'
       - '.gitignore'
   workflow_dispatch:
