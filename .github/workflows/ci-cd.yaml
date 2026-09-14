@@ -13,7 +13,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  EKS_CLUSTER_NAME: croplink-cluster
+  EKS_CLUSTER_NAME: croplink-deploy
   REGISTRY: 08abhinav
   IMAGE_TAG: ${{ github.sha }}
 
@@ -94,34 +94,34 @@ jobs:
           - image_name: "croplink-frontend"
             context: "./frontend"
     
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    # steps:
+    #   - name: Checkout
+    #     uses: actions/checkout@v4
 
-      - name: Build Docker Image
-        run: |
-          docker build \
-          -t ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }} \
-          -t ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:latest \
-          ${{ matrix.services.context }}
+    #   - name: Build Docker Image
+    #     run: |
+    #       docker build \
+    #       -t ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }} \
+    #       -t ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:latest \
+    #       ${{ matrix.services.context }}
       
-      - name: Scan Docker Image
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: '${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }}'
-          format: 'table'
-          exit-code: 0
+    #   - name: Scan Docker Image
+    #     uses: aquasecurity/trivy-action@master
+    #     with:
+    #       image-ref: '${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }}'
+    #       format: 'table'
+    #       exit-code: 0
       
-      - name: Sign in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DockerHUB_USERNAME }}
-          password: ${{ secrets.DockerHUB_PASSWORD }}
+    #   - name: Sign in to Docker Hub
+    #     uses: docker/login-action@v3
+    #     with:
+    #       username: ${{ secrets.DockerHUB_USERNAME }}
+    #       password: ${{ secrets.DockerHUB_PASSWORD }}
       
-      - name: Push Docker Image
-        run: |
-          docker push ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }}
-          docker push ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:latest
+    #   - name: Push Docker Image
+    #     run: |
+    #       docker push ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:${{ env.IMAGE_TAG }}
+    #       docker push ${{ env.REGISTRY }}/${{ matrix.services.image_name }}:latest
   
   deploy:
     name: "Deploy application to AWS EKS"
@@ -137,12 +137,6 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-      
-      - name: Update Kubeconfig
-        run: |
-          aws eks update-kubeconfig \
-           --region ${{ env.AWS_REGION }} \
-           --name ${{ env.EKS_CLUSTER_NAME }}
       
       - name: Verfiy cluster
         run: |
